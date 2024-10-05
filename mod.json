@@ -1,8 +1,7 @@
 {
 	"geode": "3.8.1",
 	"gd": {
-		"win": "2.206",
-		"mac": "2.206"
+		"win": "2.206"
 	},
 	"id": "alphalaneous.twitch_chat",
 	"name": "Twitch Chat",
