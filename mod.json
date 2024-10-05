@@ -1,0 +1,45 @@
+{
+	"geode": "3.8.1",
+	"gd": {
+		"win": "2.206",
+		"mac": "2.206"
+	},
+	"id": "alphalaneous.twitch_chat",
+	"name": "Twitch Chat",
+	"version": "v1.0.0",
+	"developer": "Alphalaneous",
+	"description": "Show Twitch Chat in game",
+	"settings": {
+		"twitch-username": {
+			"type": "string",
+			"name": "Twitch Username",
+			"default": "",
+			"filter": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"
+		},
+		"chat-history": {
+            "name": "Chat History",
+            "description": "How many messages should be in chat history at a time. Lower the value if the chat starts lagging.",
+            "type": "int",
+            "default": 50,
+			"min": 10
+        },
+		"push-to-view": {
+			"name": "Push to View",
+			"description": "Push to view chat rather than toggling.",
+			"type": "bool",
+			"default": false
+		}
+	},
+	"dependencies": [
+        {
+            "id": "geode.custom-keybinds",
+            "version": ">=v1.9.0",
+			"importance": "required"
+        }
+    ],
+	"links": {
+        "homepage": "https://twitter.com/alphalaneous",
+        "source": "https://github.com/Alphalaneous/Twitch-Chat",
+        "community": "https://discord.gg/Txn2CA5dHF"
+    }
+}
