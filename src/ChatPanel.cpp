@@ -12,7 +12,8 @@ bool ChatPanel::init() {
     m_background = CCScale9Sprite::create("square02b_001.png");
 
     CCSize winSize = CCDirector::get()->getWinSize();
-
+    m_cells = CCArray::create();
+    
     m_mainLayer = CCNode::create();
 
     setContentSize({130, winSize.height});
@@ -36,6 +37,7 @@ bool ChatPanel::init() {
 
     addChild(m_dummyItem);
     addChild(m_mainLayer);
+    instance = this;
 
     return true;
 }
@@ -65,18 +67,39 @@ void ChatPanel::setBackground() {
 
 void ChatPanel::persist() {
     SceneManager::get()->keepAcrossScenes(this);
-    instance = this;
 }
 
 void ChatPanel::addMessage(matjson::Object messageObject) {
     if(m_messages.size() == Mod::get()->getSettingValue<int64_t>("chat-history")){
         m_messages.pop_front();
+        m_cells->removeFirstObject();
     }
     m_messages.push_back(messageObject);
 
     if (isVisible()) {
+        float padding = 7.5;
+        ChatCell* chatCell = ChatCell::create(messageObject, getContentWidth() - padding);
+        m_cells->addObject(chatCell);
         refresh();
     }
+}
+
+void ChatPanel::regenerateCells() {
+
+    float padding = 7.5;
+    m_cells->removeAllObjects();
+
+    for (matjson::Object messageObject : m_messages) {
+        ChatCell* chatCell = ChatCell::create(messageObject, getContentWidth() - padding);
+        m_cells->addObject(chatCell);
+    }
+    
+    refresh();
+}
+
+void ChatPanel::setVisible(bool visible) {
+    CCMenu::setVisible(visible);
+    if (visible) regenerateCells();
 }
 
 void ChatPanel::refresh() {
@@ -97,9 +120,9 @@ void ChatPanel::refresh() {
     layout->setGap(0);
 
     messageContainer->setLayout(layout);
-    for (matjson::Object messageObject : m_messages) {
-        ChatCell* chatCell = ChatCell::create(messageObject, getContentWidth() - padding);
-        messageContainer->addChild(chatCell);
+
+    for (CCNode* cell : CCArrayExt<CCNode*>(m_cells)) {
+        messageContainer->addChild(cell);
     }
 
     messageContainer->updateLayout();

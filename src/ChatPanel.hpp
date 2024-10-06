@@ -21,9 +21,11 @@ public:
     void refresh();
     void setClickThrough(bool clickThrough);
     void setBackground();
-
+    void regenerateCells();
+    void setVisible(bool) override;
 private:
     CCNode* m_mainLayer;
     std::deque<matjson::Object> m_messages;
+    Ref<CCArray> m_cells;
     bool init() override;
 };
