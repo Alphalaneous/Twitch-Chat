@@ -72,7 +72,9 @@ void ChatPanel::persist() {
 void ChatPanel::addMessage(matjson::Object messageObject) {
     if(m_messages.size() == Mod::get()->getSettingValue<int64_t>("chat-history")){
         m_messages.pop_front();
-        m_cells->removeFirstObject();
+        if (m_cells.data()->count() > 0) {
+            m_cells->removeFirstObject();
+        }
     }
     m_messages.push_back(messageObject);
 
