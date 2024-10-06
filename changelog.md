@@ -1,5 +1,6 @@
 # 1.0.2
 - Fix a crash.
+- Fix overlay going under things :P
 
 # 1.0.1
 - Performance improvements.

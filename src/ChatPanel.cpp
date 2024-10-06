@@ -2,6 +2,7 @@
 #include <Geode/modify/CCDirector.hpp>
 #include <Geode/modify/CCMouseDispatcher.hpp>
 #include <Geode/modify/PlayLayer.hpp>
+#include <Geode/modify/CCScene.hpp>
 #include "ChatPanel.hpp"
 #include "ChatCell.hpp"
 
@@ -32,7 +33,7 @@ bool ChatPanel::init() {
     ignoreAnchorPointForPosition(false);
     setPosition({winSize.width - 3, winSize.height/2});
     setAnchorPoint({1, 0.5});
-    setZOrder(11);
+    setZOrder(1000);
     setVisible(false);
 
     addChild(m_dummyItem);
@@ -200,6 +201,22 @@ class $modify(CCMouseDispatcher) {
         return CCMouseDispatcher::dispatchScrollMSG(y, x);
     }
 };
+
+class $modify(CCScene) {
+
+    int getHighestChildZ() {
+        if (ChatPanel* panel = ChatPanel::get()) {
+            auto z = panel->getZOrder();
+            panel->setZOrder(0);
+            auto ret = CCScene::getHighestChildZ();
+            panel->setZOrder(z);
+            return ret;
+        }
+        
+        return CCScene::getHighestChildZ();
+    }
+};
+
 
 class $modify(PlayLayer) {
 

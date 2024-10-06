@@ -14,7 +14,6 @@ public:
     ScrollLayer* m_scrollLayer = nullptr;
     CCMenuItem* m_dummyItem;
     CCScale9Sprite* m_background;
-
     void persist();
     void getYourPrioritiesStraight();
     void addMessage(matjson::Object messageObject);
@@ -23,6 +22,7 @@ public:
     void setBackground();
     void regenerateCells();
     void setVisible(bool) override;
+
 private:
     CCNode* m_mainLayer;
     std::deque<matjson::Object> m_messages;
