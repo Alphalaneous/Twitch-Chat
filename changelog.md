@@ -1,3 +1,6 @@
+# 1.0.3
+- Fix a crash.
+
 # 1.0.2
 - Fix a crash.
 - Fix overlay going under things :P

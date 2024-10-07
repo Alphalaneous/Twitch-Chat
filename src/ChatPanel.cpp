@@ -49,9 +49,12 @@ void ChatPanel::setClickThrough(bool clickThrough) {
 
 ChatPanel* ChatPanel::get() {
 
-    CCSize winSize = CCDirector::get()->getWinSize();
-    instance->setPosition({winSize.width - 3, winSize.height/2});
-    return instance;
+    if (instance) {
+        CCSize winSize = CCDirector::get()->getWinSize();
+        instance->setPosition({winSize.width - 3, winSize.height/2});
+        return instance;
+    }
+    return nullptr;
 }
 
 void ChatPanel::setBackground() {
