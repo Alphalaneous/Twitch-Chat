@@ -35,7 +35,7 @@ class $modify(FLAlertLayer) {
 
 class $modify(CCTextInputNode) {
 
-     void updateLabel(gd::string p0) {
+    void updateLabel(gd::string p0) {
         if (bypassText) {
             CCNode* parent = this;
             while (true) {
