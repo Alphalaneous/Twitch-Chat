@@ -1,5 +1,7 @@
 #include <Geode/Geode.hpp>
 #include <Geode/modify/MenuLayer.hpp>
+#include <Geode/modify/CCTextInputNode.hpp>
+#include <Geode/modify/FLAlertLayer.hpp>
 #include "ServerListener.hpp"
 #include "ChatPanel.hpp"
 #include <geode.custom-keybinds/include/Keybinds.hpp>
@@ -8,6 +10,48 @@ using namespace geode::prelude;
 using namespace keybinds;
 
 bool madeChatPanel = false;
+
+class ModSettingsPopup {};
+class StringSettingNodeV3 {};
+
+bool bypassText = false;
+
+class $modify(FLAlertLayer) {
+    
+    void show() {
+        bypassText = false;
+        if (typeinfo_cast<ModSettingsPopup*>(this)) {
+            if (CCLayer* layer = getChildOfType<CCLayer>(this, 0)) {
+                if (CCLabelBMFont* title = getChildOfType<CCLabelBMFont>(layer, 0)) {
+                    if (std::string_view(title->getString()) == "Settings for Twitch Chat") {
+                        bypassText = true;
+                    }
+                }
+            }
+        }
+        FLAlertLayer::show();
+    }
+};
+
+class $modify(CCTextInputNode) {
+
+     void updateLabel(gd::string p0) {
+        if (bypassText) {
+            CCNode* parent = this;
+            while (true) {
+                if (!typeinfo_cast<StringSettingNodeV3*>(parent)) {
+                    parent = parent->getParent();
+                    if (!parent) break;
+                }
+                else {
+                    setAllowedChars("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_");
+                    break;
+                }
+            }
+        }
+        CCTextInputNode::updateLabel(p0);
+    }
+};
 
 class $modify(MenuLayer) {
 

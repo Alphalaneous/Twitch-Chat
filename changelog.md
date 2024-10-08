@@ -1,3 +1,6 @@
+# 1.0.4
+- Hacky settings fix until Geode pushes the actual fix.
+
 # 1.0.3
 - Fix a crash.
 
