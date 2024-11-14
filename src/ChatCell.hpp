@@ -11,10 +11,10 @@ struct EmoteInfo {
 
 class ChatCell : public cocos2d::CCNode {
 public:
-    static ChatCell* create(matjson::Object messageObject, float width);
+    static ChatCell* create(matjson::Value messageObject, float width);
 private:
     CCNode* m_mainLayer;
     CCLabelBMFont* createLabel(std::string text);
-    bool init(matjson::Object messageObject, float width);
+    bool init(matjson::Value messageObject, float width);
     CCNode* getImage(std::string url, std::string id, float scale = 1);
 };

@@ -46,7 +46,7 @@ int random(int min, int max) {
     return min + rand() % (( max + 1 ) - min);
 }
 
-bool ChatCell::init(matjson::Object messageObject, float width) {
+bool ChatCell::init(matjson::Value messageObject, float width) {
     if (!CCNode::init()) return false;
     
     m_mainLayer = CCNode::create(); 
@@ -65,7 +65,7 @@ bool ChatCell::init(matjson::Object messageObject, float width) {
     ccColor3B usernameColor = {58, 77, 199};
 
     if (messageObject.contains("message")) {
-        message = messageObject["message"].as_string();
+        message = messageObject["message"].asString().unwrapOr("");
     }
 
     std::vector<EmoteInfo> emotes;
@@ -76,15 +76,15 @@ bool ChatCell::init(matjson::Object messageObject, float width) {
     m_mainLayer->addChild(dummyNode);
 
     if (messageObject.contains("username")) {
-        username = messageObject["username"].as_string();
+        username = messageObject["username"].asString().unwrapOr("");
     }
     if (messageObject.contains("tags")) {
-        matjson::Object tags = messageObject["tags"].as_object();
+        matjson::Value tags = messageObject["tags"];
         if (tags.contains("display-name")) {
-            username = tags["display-name"].as_string();
+            username = tags["display-name"].asString().unwrapOr("");
         }
         if (tags.contains("color")) {
-            std::string colorStr = tags["color"].as_string();
+            std::string colorStr = tags["color"].asString().unwrapOr("");
             Result<ccColor3B> colorRes = cc3bFromHexString(colorStr);
             if (colorRes.isOk()) {
                 usernameColor = colorRes.unwrap();
@@ -97,7 +97,7 @@ bool ChatCell::init(matjson::Object messageObject, float width) {
             usernameColor = ChatPanel::get()->m_defaultColorUsers[username];
         }
         if (tags.contains("badges")) {
-            std::string badgeStr = tags["badges"].as_string();
+            std::string badgeStr = tags["badges"].asString().unwrapOr("");
             std::vector<std::string> badgeParts = utils::string::split(badgeStr, ",");
 
             for (std::string badge : badgeParts) {
@@ -110,7 +110,7 @@ bool ChatCell::init(matjson::Object messageObject, float width) {
             }
         }
         if (tags.contains("emotes")) {
-            std::string emotesStr = tags["emotes"].as_string();
+            std::string emotesStr = tags["emotes"].asString().unwrapOr("");
 
             std::vector<std::string> emoteParts = utils::string::split(emotesStr, "/");
 
@@ -258,7 +258,7 @@ CCNode* ChatCell::getImage(std::string url, std::string id, float scale) {
     return container;
 }
 
-ChatCell* ChatCell::create(matjson::Object messageObject, float width) {
+ChatCell* ChatCell::create(matjson::Value messageObject, float width) {
     auto ret = new ChatCell;
     if (ret->init(messageObject, width)) {
         ret->autorelease();

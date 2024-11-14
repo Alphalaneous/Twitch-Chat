@@ -75,10 +75,11 @@ void ServerListener::connectToChannel() {
 void ServerListener::onMessage(std::string message) {
     queueInMainThread([message] {
 
-        matjson::Value msgValue = matjson::parse(message);
-        matjson::Object msgObject = msgValue.as_object();
+        geode::Result<matjson::Value, matjson::ParseError> msgValue = matjson::parse(message);
 
-        ChatPanel::get()->addMessage(msgObject);
+        if (msgValue.isOk()) {
+            ChatPanel::get()->addMessage(msgValue.unwrap());
+        }
 
         //geode::log::info("{}", message);
     });

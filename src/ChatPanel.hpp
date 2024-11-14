@@ -16,7 +16,7 @@ public:
     CCScale9Sprite* m_background;
     void persist();
     void getYourPrioritiesStraight();
-    void addMessage(matjson::Object messageObject);
+    void addMessage(matjson::Value messageObject);
     void refresh();
     void setClickThrough(bool clickThrough);
     void setBackground();
@@ -25,7 +25,7 @@ public:
 
 private:
     CCNode* m_mainLayer;
-    std::deque<matjson::Object> m_messages;
+    std::deque<matjson::Value> m_messages;
     Ref<CCArray> m_cells;
     bool init() override;
 };

@@ -21,8 +21,8 @@ class $modify(FLAlertLayer) {
     void show() {
         bypassText = false;
         if (typeinfo_cast<ModSettingsPopup*>(this)) {
-            if (CCLayer* layer = getChildOfType<CCLayer>(this, 0)) {
-                if (CCLabelBMFont* title = getChildOfType<CCLabelBMFont>(layer, 0)) {
+            if (CCLayer* layer = this->getChildByType<CCLayer>(0)) {
+                if (CCLabelBMFont* title = layer->getChildByType<CCLabelBMFont>(0)) {
                     if (std::string_view(title->getString()) == "Settings for Twitch Chat") {
                         bypassText = true;
                     }

@@ -73,7 +73,7 @@ void ChatPanel::persist() {
     SceneManager::get()->keepAcrossScenes(this);
 }
 
-void ChatPanel::addMessage(matjson::Object messageObject) {
+void ChatPanel::addMessage(matjson::Value messageObject) {
     if(m_messages.size() == Mod::get()->getSettingValue<int64_t>("chat-history")){
         m_messages.pop_front();
         if (m_cells.data()->count() > 0) {
@@ -95,7 +95,7 @@ void ChatPanel::regenerateCells() {
     float padding = 7.5;
     m_cells->removeAllObjects();
 
-    for (matjson::Object messageObject : m_messages) {
+    for (matjson::Value messageObject : m_messages) {
         ChatCell* chatCell = ChatCell::create(messageObject, getContentWidth() - padding);
         m_cells->addObject(chatCell);
     }

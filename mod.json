@@ -1,11 +1,11 @@
 {
-	"geode": "3.8.1",
+	"geode": "4.0.0-alpha.1",
 	"gd": {
-		"win": "2.206"
+		"win": "2.2074"
 	},
 	"id": "alphalaneous.twitch_chat",
 	"name": "Twitch Chat",
-	"version": "v1.0.4",
+	"version": "v1.0.5-alpha.1",
 	"developer": "Alphalaneous",
 	"description": "Show Twitch Chat in game",
 	"settings": {
