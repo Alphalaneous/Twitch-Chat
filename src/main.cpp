@@ -3,7 +3,9 @@
 #include <Geode/modify/CCTextInputNode.hpp>
 #include <Geode/modify/FLAlertLayer.hpp>
 #include "ChatPanel.hpp"
+#ifndef GEODE_IS_IOS
 #include <geode.custom-keybinds/include/Keybinds.hpp>
+#endif
 #include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
 
 using namespace keybinds;
@@ -49,6 +51,7 @@ class $modify(MenuLayer) {
 };
 
 $execute {
+    #ifndef GEODE_IS_IOS
     BindManager::get()->registerBindable({
         "show-twitch-chat"_spr,
         "Show Twich Chat",
@@ -57,6 +60,7 @@ $execute {
         "Twitch Chat",
         false
     });
+    #endif
 
     TwitchChatAPI::get()->registerOnMessageCallback([] (const ChatMessage& chatMessage) {
 		ChatPanel::get()->addMessage(chatMessage);
