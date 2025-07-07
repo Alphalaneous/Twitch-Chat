@@ -1,7 +1,6 @@
 #include <Geode/Geode.hpp>
 #include "ChatCell.hpp"
 #include "ChatPanel.hpp"
-#include "ImageCache.hpp"
 
 using namespace geode::prelude;
 
@@ -46,7 +45,60 @@ int random(int min, int max) {
     return min + rand() % (( max + 1 ) - min);
 }
 
-bool ChatCell::init(matjson::Value messageObject, float width) {
+std::vector<MessagePiece> parseMessagePieces(const ChatMessage& chatMsg) {
+    std::vector<MessagePiece> result;
+
+    const std::string& msg = chatMsg.getMessage();
+    size_t pos = 0, index = 0;
+
+    struct EmoteRangeRef {
+        Range range;
+        const EmoteInfo* info;
+    };
+    std::vector<EmoteRangeRef> emoteRanges;
+
+    for (const auto& emote : chatMsg.getEmotes()) {
+        for (const auto& range : emote.getRanges()) {
+            emoteRanges.push_back({ range, &emote });
+        }
+    }
+
+    std::sort(emoteRanges.begin(), emoteRanges.end(), [](const EmoteRangeRef& a, const EmoteRangeRef& b) {
+        return a.range.start < b.range.start;
+    });
+
+    while (pos < msg.length()) {
+        size_t next = msg.find(' ', pos);
+        if (next == std::string::npos) next = msg.length();
+
+        Range wordRange = { static_cast<int>(pos), static_cast<int>(next - 1) };
+        bool matchedEmote = false;
+
+        for (const auto& em : emoteRanges) {
+            if (wordRange.start == em.range.start && wordRange.end == em.range.end) {
+                result.push_back(MessagePiece{
+                    .isEmote = true,
+                    .string = msg.substr(pos, next - pos),
+                    .emote = *em.info
+                });
+                matchedEmote = true;
+                break;
+            }
+        }
+
+        if (!matchedEmote) {
+            result.push_back(MessagePiece{
+                .isEmote = false,
+                .string = msg.substr(pos, next - pos),
+                .emote = {}
+            });
+        }
+        pos = next + 1;
+    }
+    return result;
+}
+
+bool ChatCell::init(ChatMessage chatMessage, float width) {
     if (!CCNode::init()) return false;
     
     m_mainLayer = CCNode::create(); 
@@ -60,113 +112,35 @@ bool ChatCell::init(matjson::Value messageObject, float width) {
     layout->setGap(0);
     m_mainLayer->setLayout(layout);
 
-    std::string username = "unknown";
-    std::string message = "unknown";
     ccColor3B usernameColor = {58, 77, 199};
-
-    if (messageObject.contains("message")) {
-        message = messageObject["message"].asString().unwrapOr("");
+    if (chatMessage.getHasColor()) usernameColor = chatMessage.getColor();
+    else {
+        if (!ChatPanel::get()->m_defaultColorUsers.contains(chatMessage.getDisplayName())) {
+            ChatPanel::get()->m_defaultColorUsers[chatMessage.getDisplayName()] = chatColors[random(0, chatColors.size()-1)];
+        }
+        usernameColor = ChatPanel::get()->m_defaultColorUsers[chatMessage.getDisplayName()];
     }
 
-    std::vector<EmoteInfo> emotes;
-    std::vector<std::string> messageParts = utils::string::split(message, " ");
+    std::vector<std::string> messageParts = utils::string::split(chatMessage.getDisplayName(), " ");
 
     CCNode* dummyNode = CCNode::create();
     dummyNode->setContentSize({0, 10});
     m_mainLayer->addChild(dummyNode);
 
-    if (messageObject.contains("username")) {
-        username = messageObject["username"].asString().unwrapOr("");
-    }
-    if (messageObject.contains("tags")) {
-        matjson::Value tags = messageObject["tags"];
-        if (tags.contains("display-name")) {
-            username = tags["display-name"].asString().unwrapOr("");
-        }
-        if (tags.contains("color")) {
-            std::string colorStr = tags["color"].asString().unwrapOr("");
-            Result<ccColor3B> colorRes = cc3bFromHexString(colorStr);
-            if (colorRes.isOk()) {
-                usernameColor = colorRes.unwrap();
-            }
-        }
-        else {
-            if (!ChatPanel::get()->m_defaultColorUsers.contains(username)) {
-                ChatPanel::get()->m_defaultColorUsers[username] = chatColors[random(0, chatColors.size()-1)];
-            }
-            usernameColor = ChatPanel::get()->m_defaultColorUsers[username];
-        }
-        if (tags.contains("badges")) {
-            std::string badgeStr = tags["badges"].asString().unwrapOr("");
-            std::vector<std::string> badgeParts = utils::string::split(badgeStr, ",");
-
-            for (std::string badge : badgeParts) {
-                std::vector<std::string> badgeAttr = utils::string::split(badge, "/");
-                if (badges.contains(badgeAttr.at(0))) {
-                    std::string badgeUrl = fmt::format("https://static-cdn.jtvnw.net/badges/v1/{}/2", utils::string::toLower(badges[badgeAttr.at(0)]));
-                    CCNode* badgeNode = getImage(badgeUrl, fmt::format("badge:{}", badges[badgeAttr.at(0)]), 0.8f);
-                    m_mainLayer->addChild(badgeNode);
-                }
-            }
-        }
-        if (tags.contains("emotes")) {
-            std::string emotesStr = tags["emotes"].asString().unwrapOr("");
-
-            std::vector<std::string> emoteParts = utils::string::split(emotesStr, "/");
-
-            for (std::string part : emoteParts) {
-                std::vector<std::string> separated = utils::string::split(part, ":");
-                std::string id = separated.at(0);
-                std::string range = separated.at(1);
-
-                std::vector<std::string> ranges = utils::string::split(range, ",");
-
-                for (std::string rangeVal : ranges) {
-
-                    std::vector<std::string> rangeParts = utils::string::split(rangeVal, "-");
-                    Result<int> rangeStartRes = utils::numFromString<int>(rangeParts.at(0));
-                    Result<int> rangeEndRes = utils::numFromString<int>(rangeParts.at(1));
-                    int start = -1;
-                    int end = -1;
-
-                    if (rangeStartRes.isOk()) {
-                        start = rangeStartRes.unwrap();
-                    }
-                    if (rangeEndRes.isOk()) {
-                        end = rangeEndRes.unwrap();
-                    }
-                    std::string subStr = message.substr(start, end-start + 1);
-                    int i = 0;
-                    for (std::string msgPart : messageParts) {
-                        if (subStr == msgPart) {
-                            bool found = false;
-                            for (EmoteInfo emote : emotes) {
-                                if (emote.idx == i) {
-                                    found = true; 
-                                    break;
-                                }
-                            }
-                            if (found) {
-                                i++;
-                                continue;
-                            }
-                            EmoteInfo info = EmoteInfo{id, i};
-                            emotes.push_back(info);
-                            break;
-                        }
-                        i++;
-                    }
-                }
-            }
+    for (const BadgeInfo& badge : chatMessage.getBadges()) {
+        if (badges.contains(badge.getName())) {
+            std::string badgeUrl = fmt::format("https://static-cdn.jtvnw.net/badges/v1/{}/2", utils::string::toLower(badges[badge.getName()]));
+            CCNode* badgeNode = getImage(badgeUrl, fmt::format("badge:{}", badges[badge.getName()]), 0.8f);
+            m_mainLayer->addChild(badgeNode);
         }
     }
 
     CCNode* usernameNode = CCNode::create();
 
-    CCLabelBMFont* usernameLabel = createLabel(fmt::format("{}", username));
+    CCLabelBMFont* usernameLabel = createLabel(fmt::format("{}", chatMessage.getDisplayName()));
     usernameLabel->setColor(usernameColor);
     usernameLabel->setAnchorPoint({0, 0});
-    CCLabelBMFont* usernameLabel2 = createLabel(fmt::format("{}", username));
+    CCLabelBMFont* usernameLabel2 = createLabel(fmt::format("{}", chatMessage.getDisplayName()));
     usernameLabel2->setColor(usernameColor);
     usernameLabel2->setAnchorPoint({0, 0});
     usernameLabel2->setPositionX(0.2f);
@@ -177,29 +151,22 @@ bool ChatCell::init(matjson::Value messageObject, float width) {
 
     m_mainLayer->addChild(usernameNode);
 
-
     CCLabelBMFont* colonLabel = createLabel(": ");
     m_mainLayer->addChild(colonLabel);
 
     int idx = 0;
-    for (std::string part : messageParts) {
 
-        bool found = false;
-        EmoteInfo emoteResult;
-        for (EmoteInfo emote : emotes) {
-            if (emote.idx == idx) {
-                found = true; 
-                emoteResult = emote;
-                break;
-            }
-        }
-        if (found) {
-            CCNode* emoteNode = getImage(fmt::format("https://static-cdn.jtvnw.net/emoticons/v2/{}/static/dark/2.0", emoteResult.id), fmt::format("emote:{}", emoteResult.id));
+    std::vector<MessagePiece> pieces = parseMessagePieces(chatMessage);
+
+    for (const MessagePiece& piece : pieces) {
+        if (piece.isEmote) {
+            CCNode* emoteNode = getImage(fmt::format("https://static-cdn.jtvnw.net/emoticons/v2/{}/static/dark/2.0", piece.emote.getID()), fmt::format("emote:{}", piece.emote.getID()));
             m_mainLayer->addChild(emoteNode);
             CCLabelBMFont* spaceLabel = createLabel(" ");
             m_mainLayer->addChild(spaceLabel);
         }
         else {
+            std::string part = piece.string;
             CCLabelBMFont* partLabel = createLabel(fmt::format("{} ", part));
             if (partLabel->getScaledContentSize().width > m_mainLayer->getContentWidth()) {
                 for (unsigned i = 0; i < part.length(); i += 35) {
@@ -210,7 +177,6 @@ bool ChatCell::init(matjson::Value messageObject, float width) {
             }
             else m_mainLayer->addChild(partLabel);
         }
-        idx++;
     }
 
     m_mainLayer->updateLayout();
@@ -235,32 +201,23 @@ CCLabelBMFont* ChatCell::createLabel(std::string text) {
 CCNode* ChatCell::getImage(std::string url, std::string id, float scale) {
     CCNode* container = CCNode::create();
     container->setContentSize(CCSize{10, 10});
-    container->retain();
-    ImageCache::get()->downloadImage(url, id, [container, scale](CCImage* img, bool success) {
-        if (success) {
-            CCSprite* spr;
-            CCTexture2D* texture = new CCTexture2D();
-            if (texture->initWithImage(img)) {
-                spr = CCSprite::createWithTexture(texture);
-            }
-            texture->release();
-            if (spr) {
-                spr->setPosition(CCSize{5 * scale, 5});
-
-                float relScale = container->getContentHeight() / spr->getContentHeight();
-                spr->setScale(relScale * scale);
-                container->addChild(spr);
-            }
+    LazySprite* lazySpr = LazySprite::create(CCSize{5*scale, 5});
+    lazySpr->setPosition(container->getContentSize()/2);
+    lazySpr->setLoadCallback([lazySpr, scale, container](Result<> res) {
+        if (res.isOk()) {
+            float relScale = container->getContentHeight() / lazySpr->getContentHeight();
+            lazySpr->setScale(relScale * scale);
         }
-        container->release();
-    }); 
-
+    });
+    lazySpr->setAutoResize(true);
+    lazySpr->loadFromUrl(url);
+    container->addChild(lazySpr);
     return container;
 }
 
-ChatCell* ChatCell::create(matjson::Value messageObject, float width) {
-    auto ret = new ChatCell;
-    if (ret->init(messageObject, width)) {
+ChatCell* ChatCell::create(ChatMessage chatMessage, float width) {
+    auto ret = new ChatCell();
+    if (ret->init(chatMessage, width)) {
         ret->autorelease();
         return ret;
     }

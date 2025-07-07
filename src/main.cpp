@@ -2,56 +2,13 @@
 #include <Geode/modify/MenuLayer.hpp>
 #include <Geode/modify/CCTextInputNode.hpp>
 #include <Geode/modify/FLAlertLayer.hpp>
-#include "ServerListener.hpp"
 #include "ChatPanel.hpp"
 #include <geode.custom-keybinds/include/Keybinds.hpp>
+#include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
 
-using namespace geode::prelude;
 using namespace keybinds;
 
 bool madeChatPanel = false;
-
-class ModSettingsPopup {};
-class StringSettingNodeV3 {};
-
-bool bypassText = false;
-
-class $modify(FLAlertLayer) {
-    
-    void show() {
-        bypassText = false;
-        if (typeinfo_cast<ModSettingsPopup*>(this)) {
-            if (CCLayer* layer = this->getChildByType<CCLayer>(0)) {
-                if (CCLabelBMFont* title = layer->getChildByType<CCLabelBMFont>(0)) {
-                    if (std::string_view(title->getString()) == "Settings for Twitch Chat") {
-                        bypassText = true;
-                    }
-                }
-            }
-        }
-        FLAlertLayer::show();
-    }
-};
-
-class $modify(CCTextInputNode) {
-
-    void updateLabel(gd::string p0) {
-        if (bypassText) {
-            CCNode* parent = this;
-            while (true) {
-                if (!typeinfo_cast<StringSettingNodeV3*>(parent)) {
-                    parent = parent->getParent();
-                    if (!parent) break;
-                }
-                else {
-                    setAllowedChars("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_");
-                    break;
-                }
-            }
-        }
-        CCTextInputNode::updateLabel(p0);
-    }
-};
 
 class $modify(MenuLayer) {
 
@@ -62,13 +19,11 @@ class $modify(MenuLayer) {
             auto chatPanel = ChatPanel::create();
             chatPanel->setID("chat-panel"_spr);
             chatPanel->persist();
-            ServerListener::get()->connectAsync();
 
             new EventListener([=](InvokeBindEvent* event) {
                 if (ChatPanel* panel = ChatPanel::get()) {
                     auto pushToView = Mod::get()->getSettingValue<bool>("push-to-view");
                     if (event->isDown()) {
-                        
                         if (pushToView) {
                             panel->setVisible(true);
                             if (panel->isVisible()) panel->refresh();
@@ -76,6 +31,7 @@ class $modify(MenuLayer) {
                         else {
                             panel->setVisible(!panel->isVisible());
                         }
+                        TwitchChatAPI::get()->promptLogin();
                     }
                     else {
                         if (pushToView) {
@@ -93,20 +49,6 @@ class $modify(MenuLayer) {
 };
 
 $execute {
-
-    listenForSettingChanges("twitch-username", [](std::string value) {
-        queueInMainThread([] {
-            ChatPanel::get()->removeFromParent();
-            bool visible = ChatPanel::get()->isVisible();
-            SceneManager::get()->forget(ChatPanel::get());
-            auto chatPanel = ChatPanel::create();
-            chatPanel->setID("chat-panel"_spr);
-            chatPanel->persist();
-            chatPanel->setVisible(visible);
-            ServerListener::get()->connectToChannel();
-        });
-    });
-    
     BindManager::get()->registerBindable({
         "show-twitch-chat"_spr,
         "Show Twich Chat",
@@ -115,4 +57,8 @@ $execute {
         "Twitch Chat",
         false
     });
+
+    TwitchChatAPI::get()->registerOnMessageCallback([] (const ChatMessage& chatMessage) {
+		ChatPanel::get()->addMessage(chatMessage);
+	});
 }

@@ -2,6 +2,7 @@
 
 #include <Geode/Geode.hpp>
 #include <deque>
+#include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
 
 using namespace geode::prelude;
 
@@ -16,7 +17,7 @@ public:
     CCScale9Sprite* m_background;
     void persist();
     void getYourPrioritiesStraight();
-    void addMessage(matjson::Value messageObject);
+    void addMessage(ChatMessage chatMessage);
     void refresh();
     void setClickThrough(bool clickThrough);
     void setBackground();
@@ -25,7 +26,7 @@ public:
 
 private:
     CCNode* m_mainLayer;
-    std::deque<matjson::Value> m_messages;
+    std::deque<ChatMessage> m_messages;
     Ref<CCArray> m_cells;
     bool init() override;
 };

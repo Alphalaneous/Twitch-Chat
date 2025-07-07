@@ -1,20 +1,17 @@
 {
-	"geode": "4.0.0-beta.1",
+	"geode": "4.6.2",
 	"gd": {
-		"win": "2.2074"
+		"win": "2.2074",
+		"mac": "2.2074",
+		"android": "2.2074",
+		"ios": "2.2074"
 	},
 	"id": "alphalaneous.twitch_chat",
 	"name": "Twitch Chat",
-	"version": "v1.0.5",
+	"version": "v1.0.6",
 	"developer": "Alphalaneous",
 	"description": "Show Twitch Chat in game",
 	"settings": {
-		"twitch-username": {
-			"type": "string",
-			"name": "Twitch Username",
-			"default": "",
-			"filter": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"
-		},
 		"chat-history": {
             "name": "Chat History",
             "description": "How many messages should be in chat history at a time. Lower the value if the chat starts lagging.",
@@ -29,13 +26,14 @@
 			"default": false
 		}
 	},
-	"dependencies": [
-        {
-            "id": "geode.custom-keybinds",
-            "version": ">=v1.9.0",
-			"importance": "required"
-        }
-    ],
+	"dependencies": {
+		"geode.custom-keybinds":  {
+			"version": ">=v1.9.0",
+			"platforms": ["win", "mac", "android"]
+		},
+		"alphalaneous.twitch_chat_api": ">=v0.1.0-alpha.1"
+
+	},
 	"links": {
         "homepage": "https://linktr.ee/Alphalaneous",
         "source": "https://github.com/Alphalaneous/Twitch-Chat",

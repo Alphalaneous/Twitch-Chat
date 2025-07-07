@@ -73,18 +73,18 @@ void ChatPanel::persist() {
     SceneManager::get()->keepAcrossScenes(this);
 }
 
-void ChatPanel::addMessage(matjson::Value messageObject) {
+void ChatPanel::addMessage(ChatMessage chatMessage) {
     if(m_messages.size() == Mod::get()->getSettingValue<int64_t>("chat-history")){
         m_messages.pop_front();
         if (m_cells.data()->count() > 0) {
             m_cells->removeFirstObject();
         }
     }
-    m_messages.push_back(messageObject);
+    m_messages.push_back(chatMessage);
 
     if (isVisible()) {
         float padding = 7.5;
-        ChatCell* chatCell = ChatCell::create(messageObject, getContentWidth() - padding);
+        ChatCell* chatCell = ChatCell::create(chatMessage, getContentWidth() - padding);
         m_cells->addObject(chatCell);
         refresh();
     }
@@ -95,8 +95,8 @@ void ChatPanel::regenerateCells() {
     float padding = 7.5;
     m_cells->removeAllObjects();
 
-    for (matjson::Value messageObject : m_messages) {
-        ChatCell* chatCell = ChatCell::create(messageObject, getContentWidth() - padding);
+    for (ChatMessage chatMessage : m_messages) {
+        ChatCell* chatCell = ChatCell::create(chatMessage, getContentWidth() - padding);
         m_cells->addObject(chatCell);
     }
     
@@ -105,7 +105,13 @@ void ChatPanel::regenerateCells() {
 
 void ChatPanel::setVisible(bool visible) {
     CCMenu::setVisible(visible);
-    if (visible) regenerateCells();
+    if (visible) {
+        regenerateCells();
+        CCNode* parent = getParent();
+        removeFromParent();
+        parent->addChild(this);
+        setZOrder(CCScene::get()->getHighestChildZ());
+    }
 }
 
 void ChatPanel::refresh() {
