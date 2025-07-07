@@ -193,6 +193,7 @@ class $modify(CCDirector) {
     }
 };
 
+#ifndef GEODE_IS_IOS
 class $modify(CCMouseDispatcher) {
 
     bool dispatchScrollMSG(float y, float x) {
@@ -210,6 +211,7 @@ class $modify(CCMouseDispatcher) {
         return CCMouseDispatcher::dispatchScrollMSG(y, x);
     }
 };
+#endif
 
 class $modify(CCScene) {
 
