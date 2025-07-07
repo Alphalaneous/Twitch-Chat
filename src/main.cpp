@@ -21,6 +21,7 @@ class $modify(MenuLayer) {
             auto chatPanel = ChatPanel::create();
             chatPanel->setID("chat-panel"_spr);
             chatPanel->persist();
+            #ifndef GEODE_IS_IOS
 
             new EventListener([=](InvokeBindEvent* event) {
                 if (ChatPanel* panel = ChatPanel::get()) {
@@ -44,6 +45,7 @@ class $modify(MenuLayer) {
                 return ListenerResult::Propagate;
             }, InvokeBindFilter(nullptr, "show-twitch-chat"_spr));
             madeChatPanel = true;
+            #endif
         }
 
         return true;
