@@ -2,7 +2,7 @@
 - Scale chat messages, resize window (in settings)
 - Floating chat button for mobile
 
-# 1.0.6
+# 1.0.6-beta.1
 - Use Twitch Chat API (chat is now handled locally, no more downtime bugs)
 - Use LazySprite (no more memory leaks from shitty emote loading code)
 - More efficient emote parsing
