@@ -4,6 +4,9 @@
 - Switching chat side
 - Chat opacity option
 
+# 1.0.6-beta.2
+- Fix description
+
 # 1.0.6-beta.1
 - Use Twitch Chat API (chat is now handled locally, no more downtime bugs)
 - Use LazySprite (no more memory leaks from shitty emote loading code)
